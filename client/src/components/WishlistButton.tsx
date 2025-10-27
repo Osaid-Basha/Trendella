@@ -1,24 +1,29 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { addWishlistItem, removeWishlistItem, type NormalizedProduct } from "../lib/api";
 
 interface WishlistButtonProps {
-  productId: string;
+  product: NormalizedProduct;
 }
 
-export const WishlistButton = ({ productId }: WishlistButtonProps) => {
+export const WishlistButton = ({ product }: WishlistButtonProps) => {
   const queryClient = useQueryClient();
   const wishlist = queryClient.getQueryData<NormalizedProduct[]>(["wishlist"]) ?? [];
-  const isSaved = wishlist.some((item) => item.id === productId);
+  const productKey = useMemo(
+    () => `${product.store}|${product.id}`,
+    [product.id, product.store]
+  );
+  const isSaved = wishlist.some((item) => `${item.store}|${item.id}` === productKey);
 
   const addMutation = useMutation({
-    mutationFn: () => addWishlistItem(productId),
+    mutationFn: () => addWishlistItem(product),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wishlist"] });
     }
   });
 
   const removeMutation = useMutation({
-    mutationFn: () => removeWishlistItem(productId),
+    mutationFn: () => removeWishlistItem(product.id, product.store),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wishlist"] });
     }
