@@ -15,14 +15,22 @@ export const WishlistPage = () => {
   });
 
   const {
-    data,
+    data = [],
     isLoading,
     isError
   } = useQuery<NormalizedProduct[]>({
     queryKey: ["wishlist", user?.id ?? "guest"],
     queryFn: fetchWishlist,
-    initialData: [] as NormalizedProduct[],
-    enabled: !isUserPending
+    placeholderData: [],
+    enabled: Boolean(user)
+  });
+
+  console.log("wishlist query state", {
+    user,
+    isUserPending,
+    isLoading,
+    isError,
+    dataLength: data?.length
   });
 
   if (isLoading || isUserPending) {

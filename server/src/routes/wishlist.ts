@@ -56,7 +56,7 @@ router.get("/", async (req, res) => {
   }
 
   const products = await fetchUserWishlist(user.id);
-  console.debug("[wishlist] returning products for user", user.id, products.length);
+  console.debug("[wishlist] returning products for user", user.id, products.length, products);
   return res.json({ products });
 });
 

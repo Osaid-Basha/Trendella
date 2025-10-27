@@ -38,6 +38,8 @@ export interface RecommendResponse extends RenderingContract {
   products: NormalizedProduct[];
 }
 
+console.log("apiClient configured", API_BASE);
+
 export const apiClient = axios.create({
   baseURL: API_BASE,
   headers: {
@@ -48,6 +50,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   // Ensure Firebase has restored the current user before attaching tokens.
+  console.log("sending request", config.url, config.method);
   await waitForAuthReady();
   const auth = getFirebaseAuth();
   const currentUser = auth.currentUser;
