@@ -42,7 +42,7 @@ export const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json"
   },
-  withCredentials: false
+  withCredentials: true
 });
 
 export const requestRecommendations = async (profile: RecipientProfile) => {
@@ -61,4 +61,13 @@ export const addWishlistItem = async (productId: string) => {
 
 export const removeWishlistItem = async (productId: string) => {
   await apiClient.post("/api/wishlist/remove", { productId });
+};
+
+export interface MeResponse {
+  user: { id: string; name: string; email: string; picture?: string } | null;
+}
+
+export const fetchMe = async () => {
+  const { data } = await apiClient.get<MeResponse>("/api/me");
+  return data.user;
 };

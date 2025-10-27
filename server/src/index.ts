@@ -4,10 +4,13 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import { env, isProd } from "./utils/env";
 import recommendRouter from "./routes/recommend";
 import wishlistRouter from "./routes/wishlist";
 import chatRouter from "./routes/chat";
+import authRouter from "./routes/auth";
+import { getUserFromRequest } from "./utils/auth";
 
 const app = express();
 
@@ -36,12 +39,20 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors(corsOptions));
 app.use(limiter);
 app.use(compression());
+app.use(cookieParser());
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
 });
 
+app.use("/api/auth", authRouter);
+app.get("/api/me", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return res.json({ user: null });
+  const { id, name, email, picture } = user;
+  return res.json({ user: { id, name, email, picture } });
+});
 app.use("/api/recommend", recommendRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/chat", chatRouter);

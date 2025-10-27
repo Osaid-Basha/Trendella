@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { AuthButton } from "../components/AuthButton";
 
 const navLinkClass =
   "px-3 py-2 text-sm font-medium rounded-md transition hover:bg-slate-200 dark:hover:bg-slate-800";
@@ -32,7 +33,10 @@ const App = () => {
                 Wish List
               </NavLink>
             </nav>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <AuthButton />
+              <ThemeToggle />
+            </div>
           </div>
         </header>
         <main className="flex-1">

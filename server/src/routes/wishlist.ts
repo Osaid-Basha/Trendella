@@ -1,42 +1,71 @@
 import { Router } from "express";
 import { z } from "zod";
-import { addToWishlist, getWishlist, lookupProduct, removeFromWishlist } from "../services/session";
+import {
+  addToGuestWishlist,
+  addToUserWishlist,
+  getGuestWishlist,
+  getUserWishlist,
+  lookupProduct,
+  removeFromGuestWishlist,
+  removeFromUserWishlist
+} from "../services/session";
 import { getSessionId } from "../utils/session";
+import { getUserFromRequest, ensureGuestCookie } from "../utils/auth";
+import { sanitizeAffiliateUrl } from "../utils/url";
 
 const router = Router();
 
 const wishlistBodySchema = z.object({
-  productId: z.string().min(1)
+  productId: z.string().min(1),
+  store: z.string().optional()
 });
 
-router.get("/", (req, res) => {
-  const sessionId = getSessionId(req);
-  const wishlist = getWishlist(sessionId);
-  res.json({ products: wishlist });
+router.get("/", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (user) {
+    const products = getUserWishlist(user.id);
+    return res.json({ products });
+  }
+  const guestId = ensureGuestCookie(req, res);
+  const products = getGuestWishlist(guestId);
+  return res.json({ products });
 });
 
-router.post("/add", (req, res, next) => {
+router.post("/add", async (req, res, next) => {
   try {
-    const { productId } = wishlistBodySchema.parse(req.body);
+    const { productId, store } = wishlistBodySchema.parse(req.body);
     const sessionId = getSessionId(req);
-    const product = lookupProduct(sessionId, productId);
+    const product = lookupProduct(sessionId, productId, store);
 
     if (!product) {
       return res.status(404).json({ error: "Product not found in recent recommendations" });
     }
 
-    addToWishlist(sessionId, product);
+    // sanitize URLs to be safe
+    product.affiliate_url = sanitizeAffiliateUrl(product.affiliate_url);
+    const user = await getUserFromRequest(req);
+    if (user) {
+      addToUserWishlist(user.id, product);
+    } else {
+      const guestId = ensureGuestCookie(req, res);
+      addToGuestWishlist(guestId, product);
+    }
     res.json({ success: true });
   } catch (error) {
     next(error);
   }
 });
 
-router.post("/remove", (req, res, next) => {
+router.post("/remove", async (req, res, next) => {
   try {
-    const { productId } = wishlistBodySchema.parse(req.body);
-    const sessionId = getSessionId(req);
-    removeFromWishlist(sessionId, productId);
+    const { productId, store } = wishlistBodySchema.parse(req.body);
+    const user = await getUserFromRequest(req);
+    if (user) {
+      removeFromUserWishlist(user.id, productId, store);
+    } else {
+      const guestId = ensureGuestCookie(req, res);
+      removeFromGuestWishlist(guestId, productId, store);
+    }
     res.json({ success: true });
   } catch (error) {
     next(error);

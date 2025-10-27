@@ -20,7 +20,15 @@ const envSchema = z
     RAPIDAPI_ETSY_HOST: z.string().optional(),
     EBAY_APP_ID: z.string().optional(),
     BESTBUY_API_KEY: z.string().optional(),
-    ETSY_API_KEY: z.string().optional()
+    ETSY_API_KEY: z.string().optional(),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    SERVER_BASE_URL: z.string().url().optional(),
+    CLIENT_BASE_URL: z.string().url().optional(),
+    JWT_SECRET: z.string().optional(),
+    REFRESH_SECRET: z.string().optional(),
+    ACCESS_TOKEN_TTL_MIN: z.coerce.number().default(15),
+    REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(7)
   })
   .transform((values) => ({
     ...values,
